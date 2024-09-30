@@ -19,9 +19,13 @@ import {
   withLatestFrom,
   concatAll,
   shareReplay,
+  take,
 } from "rxjs/operators";
-import { merge, fromEvent, Observable, concat } from "rxjs";
+import { merge, fromEvent, Observable, concat, interval, of } from "rxjs";
 import { Lesson } from "../model/lesson";
+import { fromPromise } from "rxjs/internal-compatibility";
+import { createHttpRequest } from "../create.request";
+import { HttpClient } from "@angular/common/http";
 
 @Component({
   selector: "course",
@@ -30,14 +34,32 @@ import { Lesson } from "../model/lesson";
 })
 export class CourseComponent implements OnInit, AfterViewInit {
   course$: Observable<Course>;
-  lessons$: Observable<Lesson[]>;
+  lessons$: Observable<any>;
 
   @ViewChild("searchInput", { static: true }) input: ElementRef;
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(private route: ActivatedRoute, private http: HttpClient) {}
 
   ngOnInit() {
     const courseId = this.route.snapshot.params["id"];
+    this.course$ = createHttpRequest(`/api/courses/${courseId}`);
+    const initialLessons$ = createHttpRequest(
+      `/api/lessons?courseId=${courseId}&pageSize=100`
+    ).pipe(map((data) => data["payload"]));
+
+    const filterLessons$ = fromEvent(this.input.nativeElement, "keyup").pipe(
+      debounceTime(400),
+      map((e: Event) => e.target["value"]),
+      distinctUntilChanged(),
+      switchMap((data) =>
+        this.http.get(
+          `/api/lessons?courseId=${courseId}&pageSize=100&filter=${data}`
+        )
+      ),
+      map((data) => data["payload"])
+    );
+
+    this.lessons$ = concat(initialLessons$, filterLessons$);
   }
 
   ngAfterViewInit() {}

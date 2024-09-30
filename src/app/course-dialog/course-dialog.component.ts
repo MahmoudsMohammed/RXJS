@@ -18,6 +18,7 @@ import {
   exhaustMap,
   filter,
   mergeMap,
+  switchMap,
   tap,
 } from "rxjs/operators";
 import { fromPromise } from "rxjs/internal-compatibility";
@@ -81,6 +82,6 @@ export class CourseDialogComponent implements OnInit {
   }
 
   save() {
-    // if set observable within on save method will create a new one with each click  
+    // if set observable within on save method will create a new one with each click
   }
 }
