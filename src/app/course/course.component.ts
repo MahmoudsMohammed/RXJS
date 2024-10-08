@@ -52,7 +52,7 @@ export class CourseComponent implements OnInit, AfterViewInit {
       map((e: Event) => e.target["value"]),
       distinctUntilChanged(),
       switchMap((data) =>
-        this.http.get(
+        createHttpRequest(
           `/api/lessons?courseId=${courseId}&pageSize=100&filter=${data}`
         )
       ),

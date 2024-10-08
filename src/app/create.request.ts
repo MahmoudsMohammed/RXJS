@@ -10,7 +10,9 @@ export function createHttpRequest(url) {
         observer.next(data);
         observer.complete();
       })
-      .catch((err) => observer.error(err));
-    return () => controller.abort();
+      .catch((err) => {
+        observer.error(err);
+      });
+    return () => controller.abort(); // this is teardown function will return and invocate when unsubscribe to clean up resources
   });
 }
